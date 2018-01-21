@@ -8,6 +8,21 @@ The goal of FileWriter is to package up the best practice in the
 one specific use-case of replacing a file entirely with new
 content.
 
+It should at a minimum:
+
+ * maintain permissions of the overwritten file.
+ * keep a Unix-style backup file (original filename +"~")
+ * use `rename` to create the backup file if possible.
+ * call `fsync` to ensure durability
+ * raise an exception if an unexpected number of bytes gets written
+ * leave the backup intact if overwriting the file fails.
+
+See the rspec specs for specifics.
+
+In the future, the intent is to replicate more of the options
+provided by emacs (see [the emacs manual](https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving.html) )
+
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -26,7 +41,16 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+   FileWriter.new(filename).write(contents)
+```
+
+or 
+
+```
+   FileWriter.write(filename,contents)
+```
+
 
 ## Development
 
