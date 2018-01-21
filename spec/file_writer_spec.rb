@@ -76,6 +76,11 @@ describe FileWriter do
       expect {overwrite}.to raise_exception(SystemCallError)
     end
 
+    it "handles writing of unicode characters" do
+      FileWriter.write(fname,"\u25c2")
+      expect(File.read(fname)).to eq("\u25c2")
+    end
+
     it "leave the backup intact if writing the new contents fails" do
       expect_any_instance_of(File).to receive(:syswrite) { 0 }
       expect {overwrite}.to raise_exception(SystemCallError)

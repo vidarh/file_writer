@@ -30,7 +30,7 @@ class FileWriter
     end
 
     File.open(fname, "wb+", mode) do |f|
-      if f.syswrite(contents) != contents.length
+      if f.syswrite(contents) != contents.bytesize
         raise SystemCallError.new("FileWriter#write: syswrite returned unexpected length")
       end
       f.flush
