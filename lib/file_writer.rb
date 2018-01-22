@@ -21,12 +21,18 @@ class FileWriter
   #
   def write(contents)
     backup = fname + "~"
-    mode   = File.stat(fname).mode
 
-    begin
-      File.rename(fname, backup)
-    rescue SystemCallError
-      FileUtils.cp(fname,fname+"~")
+    existing = File.exists?(fname)
+
+    if existing
+      mode   = File.stat(fname).mode
+      begin
+        File.rename(fname, backup)
+      rescue SystemCallError
+        FileUtils.cp(fname,fname+"~")
+      end
+    else
+      mode = nil
     end
 
     File.open(fname, "wb+", mode) do |f|

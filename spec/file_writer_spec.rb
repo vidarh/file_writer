@@ -32,6 +32,12 @@ describe FileWriter do
   end
 
   context "#write" do
+    it "creates a new file if one does not already exist" do
+      tmp = Dir::Tmpname.make_tmpname("/tmp/filewriter", nil)
+      FileWriter.write(tmp, "hello world")
+      expect(File.read(tmp)).to eq("hello world")
+    end
+    
     it "replaces the contents of the file" do
       overwrite
       expect(File.read(fname)).to eq("bar")
