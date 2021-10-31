@@ -2,7 +2,8 @@ require "spec_helper"
 require "tmpdir"
 
 describe FileWriter do
-  let(:fname) { Dir::Tmpname.make_tmpname("/tmp/filewriter", nil) }
+
+  let(:fname) { filewriter_tmpname }
   let(:backup) { fname + "~" }
   let(:fw)    { FileWriter.new(fname) }
 
@@ -33,11 +34,10 @@ describe FileWriter do
 
   context "#write" do
     it "creates a new file if one does not already exist" do
-      tmp = Dir::Tmpname.make_tmpname("/tmp/filewriter", nil)
-      FileWriter.write(tmp, "hello world")
-      expect(File.read(tmp)).to eq("hello world")
+      FileWriter.write(fname, "hello world")
+      expect(File.read(fname)).to eq("hello world")
     end
-    
+
     it "replaces the contents of the file" do
       overwrite
       expect(File.read(fname)).to eq("bar")
