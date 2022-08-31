@@ -78,7 +78,7 @@ describe FileWriter do
     end
 
     it "raises SystemCallError if writing the new contents fails" do
-      expect_any_instance_of(File).to receive(:syswrite) { 0 }
+      expect_any_instance_of(File).to receive(:write) { 0 }
       expect {overwrite}.to raise_exception(SystemCallError)
     end
 
@@ -87,8 +87,14 @@ describe FileWriter do
       expect(File.read(fname)).to eq("\u25c2")
     end
 
+    it "writes files larger than SPLIT_SIZE correctly" do
+      c = "x42" * (FileWriter::SPLIT_SIZE + 42)
+      FileWriter.write(fname, c)
+      expect(File.read(fname)).to eq(c)
+    end
+
     it "leave the backup intact if writing the new contents fails" do
-      expect_any_instance_of(File).to receive(:syswrite) { 0 }
+      expect_any_instance_of(File).to receive(:write) { 0 }
       expect {overwrite}.to raise_exception(SystemCallError)
       expect(File.read(backup)).to eq("foo")
     end

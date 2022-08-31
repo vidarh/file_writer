@@ -40,27 +40,7 @@ class FileWriter
     File.open(fname, "wb+", fmode) do |f|
       size    = contents.bytesize
 
-      #
-      #We do this rather than f.write or f.syswrite as it
-      # gives substantially better latency in a threaded
-      # environment as of MRI 2.7.2 than a single write,
-      # at the cost of throughput
-      #
-      # See tests/latency.rb for a test case, and try
-      # replacing the below with
-      #
-      # ```
-      #     written = File.write(contents)
-      # ```
-      #
-      written = 0
-      while (size - written) > SPLIT_SIZE
-        if (w = f.write(contents[written .. (written+SPLIT_SIZE-1)])) != SPLIT_SIZE
-          raise SystemCallError.new("FileWriter#write: write returned unexpected length (#{w.inspect})")
-        end
-        written += w
-      end
-      written += f.write(contents[written .. -1])
+      written = f.write(contents)
 
       if written != size
         raise SystemCallError.new("FileWriter#write: write returned unexpected length")
