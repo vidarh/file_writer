@@ -15,6 +15,8 @@ class FileWriter
     @fname = fname
   end
 
+  SPLIT_SIZE = 65536
+
   # Overwrite the file
   #
   # @param String contents The new contents for the file.
@@ -25,19 +27,43 @@ class FileWriter
     existing = File.exists?(fname)
 
     if existing
-      mode   = File.stat(fname).mode
+      fmode   = File.stat(fname).mode
       begin
         File.rename(fname, backup)
       rescue SystemCallError
         FileUtils.cp(fname,fname+"~")
       end
     else
-      mode = nil
+      fmode = nil
     end
 
-    File.open(fname, "wb+", mode) do |f|
-      if f.syswrite(contents) != contents.bytesize
-        raise SystemCallError.new("FileWriter#write: syswrite returned unexpected length")
+    File.open(fname, "wb+", fmode) do |f|
+      size    = contents.bytesize
+
+      #
+      #We do this rather than f.write or f.syswrite as it
+      # gives substantially better latency in a threaded
+      # environment as of MRI 2.7.2 than a single write,
+      # at the cost of throughput
+      #
+      # See tests/latency.rb for a test case, and try
+      # replacing the below with
+      #
+      # ```
+      #     written = File.write(contents)
+      # ```
+      #
+      written = 0
+      while (size - written) > SPLIT_SIZE
+        if (w = f.write(contents[written .. (written+SPLIT_SIZE-1)])) != SPLIT_SIZE
+          raise SystemCallError.new("FileWriter#write: write returned unexpected length (#{w.inspect})")
+        end
+        written += w
+      end
+      written += f.write(contents[written .. -1])
+
+      if written != size
+        raise SystemCallError.new("FileWriter#write: write returned unexpected length")
       end
       f.flush
       f.fsync
